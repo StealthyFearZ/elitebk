@@ -1,5 +1,7 @@
 # Project 3
 
+RAG chat web app with own documents, organized reports, and data sheets with DRF on the backend and a React frontend.
+
 ## Setup
 1. cd into /backend and `pip install -r requirements.txt`
 Any time you add a dependency, add the library name to that file.
