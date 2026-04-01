@@ -11,9 +11,9 @@ Any time you add a dependency, add the library name to that file.
 3. Get .env keys from someone or something
 
 ## Tech
-Frontend (/frontend): TypeScript, React
-Backend (/backend): Django Rest Framework 
-RAG (also /backend): LangChain and Supabase (with the psycog2-binary library so we can still use Django models.py)
+- Frontend (/frontend): TypeScript, React
+- Backend (/backend): Django Rest Framework 
+- RAG (also /backend): LangChain and Supabase (with the psycog2-binary library so we can still use Django models.py)
 
 ## !! Need to decide AI providers we want to use
 We'll likely do multiple different AI providers cause of free tier limitations. Groq and Gemini looking like frontrunners right now.
