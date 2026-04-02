@@ -16,13 +16,13 @@ Any time you add a dependency, add the library name to that file.
 - RAG (also /backend): LangChain and Supabase (with the psycog2-binary library so we can still use Django models.py)
 
 ## !! Need to decide AI providers we want to use
-We'll likely do multiple different AI providers cause of free tier limitations. Groq and Gemini looking like frontrunners right now.
+We'll likely do multiple different AI providers cause of free tier limitations. Gemini and/or HF Inference looking like frontrunners right now, but maybe Groq.
 Also, we'll prolly use Tailwind, but we don't have to.
 
 ## Architecture (had some help creating this diagram)
 ```
 rag-project/
-├── backend/                # Django DRF Project (really similar to normal Django)
+├── backend/                # Django RF Project (really similar to normal Django)
 │   ├── core/               # Project settings
 │   ├── api/                # Main logic (RAG, Ingestion, Exports)
 │   ├── manage.py
