@@ -1,6 +1,7 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from .vector_store import get_vectorstore
 
 # getter for llm instance (the chat model)
@@ -33,10 +34,10 @@ def generate_answer(user_query: str):
         ("human", "{question}")
     ])
 
-    chain = prompt | llm # put prompt into LLM (langchain shorthand)
+    chain = prompt | llm | StrOutputParser() # put prompt into LLM (langchain shorthand)
     response = chain.invoke({"context": context_text, "question" : user_query})
     
     return {
-        "answer": response.content,
+        "answer": response,
         "sources": [{"snippet": d.page_content, "metadata": d.metadata} for d in docs] # source docs for displaying references in future
     }

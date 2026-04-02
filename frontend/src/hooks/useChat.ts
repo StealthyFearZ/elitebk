@@ -6,7 +6,6 @@ export const useChat = () => {
     const askQuestion = async (question: string) => {
         setLoading(true);
         try {
-            // asks the backend api for chat response
             const res = await fetch('http://localhost:8000/api/ask/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -18,7 +17,7 @@ export const useChat = () => {
             }
 
             const data = await res.json();
-            return data; // { answer: string, sources: array }
+            return data;
         } catch (error) {
             console.error("Chat failure: ", error);
         } finally {

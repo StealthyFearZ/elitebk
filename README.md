@@ -3,6 +3,8 @@
 RAG chat web app with own documents, organized reports, and data sheets with DRF on the backend and a React frontend.
 
 ## Setup
+INSTALL NODE and NPM IF NECESSARY
+
 1. cd into /backend and `pip install -r requirements.txt`
 Any time you add a dependency, add the library name to that file.
 
@@ -15,7 +17,6 @@ Any time you add a dependency, add the library name to that file.
 **Terminal 1 (Backend):**
 ```powershell
 cd backend
-.\venv\Scripts\activate
 python manage.py runserver
 ```
 **Terminal 2 (Frontend):**

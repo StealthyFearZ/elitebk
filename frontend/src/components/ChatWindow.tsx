@@ -1,48 +1,72 @@
-// frontend/src/components/ChatWindow.tsx
 import { useState } from 'react';
 import { useChat } from '../hooks/useChat';
 
 export default function ChatWindow() {
     const { askQuestion, loading } = useChat();
     const [query, setQuery] = useState("");
-    const [answer, setAnswer] = useState("");
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
 
     const handleSend = async () => {
         if (!query.trim()) return;
 
-        const result = await askQuestion(query); // also gets the sources (user story 4)
+        const currentQuery = query;
+        setQuery("");
+        setMessages(prev => [...prev, { role: 'user', content: currentQuery }]);
+
+        const result = await askQuestion(currentQuery);
         if (result) {
-            setAnswer(result.answer);
+            setMessages(prev => [...prev, { role: 'assistant', content: result.answer }]);
         }
     };
 
-    // following CSS def needs adjustment to display chat history so this is just temp for me
     return (
-        <div className="flex flex-col gap-4 p-6 max-w-2xl mx-auto">
-            {/* Input area */}
-            <div className="flex gap-2">
-                <input 
-                    className="border p-2 flex-grow rounded"
-                    value={query} 
-                    onChange={(e) => setQuery(e.target.value)} 
-                    placeholder="Ask a question"
-                />
-                <button 
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={handleSend}
-                    disabled={loading}
-                >
-                    {loading ? 'Sending...' : 'Send'}
-                </button>
+        <div className="flex flex-col h-[80vh] w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-blue-600 p-4 text-white text-center font-semibold text-lg">
+                EliteChat
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                {messages.length === 0 && (
+                    <div className="text-center text-gray-400 mt-10">
+                        Start a conversation...
+                    </div>
+                )}
+                {messages.map((msg, idx) => (
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[70%] rounded-2xl p-3 shadow-sm ${msg.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'}`}>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                        </div>
+                    </div>
+                ))}
+                {loading && (
+                    <div className="flex justify-start">
+                        <div className="max-w-[70%] rounded-2xl p-3 shadow-sm bg-white text-gray-800 rounded-bl-none border border-gray-200 flex space-x-2 items-center">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                    </div>
+                )}
             </div>
             
-            {/* Answer box */}
-            {answer && (
-                <div className="bg-gray-100 p-4 rounded mt-4">
-                    <h3 className="font-bold">Answer:</h3>
-                    <p className="whitespace-pre-wrap">{answer}</p>
+            <div className="p-4 bg-white border-t border-gray-200">
+                <div className="flex gap-2">
+                    <input 
+                        className="flex-1 border border-gray-300 p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        value={query} 
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                        placeholder="Type your message..."
+                        disabled={loading}
+                    />
+                    <button 
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleSend}
+                        disabled={loading || !query.trim()}
+                    >
+                        Send
+                    </button>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
