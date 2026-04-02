@@ -29,7 +29,7 @@ def generate_answer(user_query: str):
         ("system", "You are a helpful assistant. "
         "Answer ONLY based on the provided context. "
         "If the context does not contain the answer, "
-        "say 'I cannot answer this based on the provided documents.'\n\n"
+        "first say 'I cannot answer this completely based on the provided context.' and then attempt to answer. \n\n"
         "CONTEXT:\n{context}"),
         ("human", "{question}")
     ])
