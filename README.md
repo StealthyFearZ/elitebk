@@ -10,6 +10,20 @@ Any time you add a dependency, add the library name to that file.
 
 3. Get .env keys from someone or something
 
+## Running the Dev Servers (Windows)
+2 separate terminal windows to run the app locally.
+**Terminal 1 (Backend):**
+```powershell
+cd backend
+.\venv\Scripts\activate
+python manage.py runserver
+```
+**Terminal 2 (Frontend):**
+```powershell
+cd frontend
+npm run dev
+```
+
 ## Tech
 - Frontend (/frontend): TypeScript, React
 - Backend (/backend): Django Rest Framework 

@@ -6,3 +6,4 @@ langchain-community
 langchain-postgres
 langchain-google-genai
 psycopg2-binary
+python-dotenv

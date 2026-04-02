@@ -4,13 +4,14 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 # getter for the embeddings model (model for putting into vector db)
 def get_embeddings():
+    embed_model = os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001")
     return GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model=embed_model,
         google_api_key=os.getenv("GEMINI_API_KEY") # NEEDS TO BE CONFIGURED
     )
 #
 def get_vectorstore():
-    db_url = os.get_env("SUPABASE_DB_URL") # NEEDS TO BE CONFIGURED
+    db_url = os.getenv("SUPABASE_DB_URL") # NEEDS TO BE CONFIGURED
     embeddings = get_embeddings()
 
     return PGVector(

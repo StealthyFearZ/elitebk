@@ -1,12 +1,13 @@
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from .vector_store import get_vectorstore
 
 # getter for llm instance (the chat model)
 def get_llm():
+    chat_model = os.getenv("GEMINI_CHAT_MODEL", "gemini-3.1-flash-lite-preview")
     return ChatGoogleGenerativeAI(
-        model="gemini-3.1-flash-lite", # free tier model
+        model=chat_model,
         temperature=0.2,
         google_api_key=os.getenv("GEMINI_API_KEY") # define this in ur .env otherwise it's not gonna work
     )
