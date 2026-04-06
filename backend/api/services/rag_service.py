@@ -3,6 +3,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .vector_store import get_vectorstore
+from .vector_store import retrieve_relevant_documents
 
 # getter for llm instance (the chat model)
 def get_llm():
@@ -19,7 +20,7 @@ def generate_answer(user_query: str):
     vector = get_vectorstore()
 
      # search for relevant docs in db
-    docs = vector.similarity_search(user_query)
+    docs = retrieve_relevant_documents(user_query)
     
     # turn into normal prompt text
     context_text = "\n\n".join([doc.page_content for doc in docs]) 
