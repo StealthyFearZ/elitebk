@@ -21,9 +21,14 @@ def generate_answer(user_query: str):
 
      # search for relevant docs in db
     docs = retrieve_relevant_documents(user_query)
+    print(f"Retrieved {len(docs)} documents:")
+    for doc in docs:
+        print(f"Document: {doc.metadata}")
+        print(f"Content: {doc.page_content}\n")
     
     # turn into normal prompt text
     context_text = "\n\n".join([doc.page_content for doc in docs]) 
+    print(f"Context text: {context_text}")
     
     # do "system" for backend messages, "ai" for AI messages, and "human" for any user input
     prompt = ChatPromptTemplate.from_messages([
@@ -37,6 +42,7 @@ def generate_answer(user_query: str):
 
     chain = prompt | llm | StrOutputParser() # put prompt into LLM (langchain shorthand)
     response = chain.invoke({"context": context_text, "question" : user_query})
+    print(f"Generated response: {response}")
     
     return {
         "answer": response,
