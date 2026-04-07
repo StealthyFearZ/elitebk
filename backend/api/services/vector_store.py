@@ -26,9 +26,11 @@ def add_documents_to_vectorstore(documents):
     vectorstore.add_texts(documents)
 
 def retrieve_relevant_documents(query, k=5):
+    # Return the documents with their similiarty score
     vectorstore = get_vectorstore()
-    return vectorstore.similarity_search(query, k=k)
+    docs = vectorstore.similarity_search_with_score(query, k=k)
+    return [doc for doc, score in docs]
 
 def update_dataset(documents):
     vectorstore = get_vectorstore()
-    vectorstore.add_texts(documents)
+    vectorstore.add_texts([doc['content'] for doc in documents], metadatas=[doc['metadata'] for doc in documents])
