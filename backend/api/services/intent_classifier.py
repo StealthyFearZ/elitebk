@@ -6,8 +6,8 @@ class IntentResult:
     reason: str
 
 STATS_LOOKUP = { # list of terms to classify for stat lookup
-    "how many", "what is", "ppg", "points per game", "average", "rebounds per game", "rpg", "apg", "assists per game",
-    "fg%", "3pt%", "free throw", "percentage", "stat", "record"
+    "how many", "what is", "what was", "ppg", "points per game", "average", "rebounds per game", "rpg", "apg", "assists per game",
+    "fg%", "3pt%", "free throw", "percentage", "stat", "record", "score"
     }
 COMPARISON = { # list of terms to classify for comparison of teams/stats/plays
     "compare", "vs", "versus", "better", "worse", "stronger", "weaker", "difference"
