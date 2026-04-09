@@ -1,7 +1,8 @@
 basketball_reference_scraper
 django 
 djangorestframework 
-django-cors-headers 
+django-cors-headers
+gunicorn
 langchain 
 langchain-community 
 langchain-postgres
