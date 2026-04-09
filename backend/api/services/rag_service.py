@@ -58,7 +58,7 @@ def generate_answer(user_query: str):
     
     return {
         "intent": intent, # also return intent and the reason(matching keywords) to show Dynamic Prompt Building works
-        "intent_result" : intent_result.reason,
+        "prompt" : prompt,
         "answer": response,
         "sources": [{"snippet": d.page_content, "metadata": d.metadata} for d in docs] # source docs for displaying references in future
     }
