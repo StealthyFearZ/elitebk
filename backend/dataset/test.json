@@ -1,0 +1,11 @@
+[
+  {
+    "idEvent": "123",
+    "dateEvent": "2024-01-01",
+    "strTime": "19:00:00",
+    "strHomeTeam": "Lakers",
+    "strAwayTeam": "Warriors",
+    "intHomeScore": "110",
+    "intAwayScore": "108"
+  }
+]

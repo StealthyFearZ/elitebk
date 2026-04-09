@@ -7,7 +7,7 @@ def get_embeddings():
     embed_model = os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001")
     return GoogleGenerativeAIEmbeddings(
         model=embed_model,
-        google_api_key=os.getenv("GEMINI_API_KEY") # NEEDS TO BE CONFIGURED
+        google_api_key= os.getenv("GEMINI_API_KEY")# NEEDS TO BE CONFIGURED
     )
 #
 def get_vectorstore():

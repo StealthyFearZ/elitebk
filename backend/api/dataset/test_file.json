@@ -1,0 +1,36 @@
+{
+  "events": [
+    {
+      "DATE": "2024-01-10",
+      "TEAM": "MIA",
+      "OPPONENT": "LAL",
+      "HOME/AWAY": "HOME",
+      "PTS": 102,
+      "OPP_PTS": 98
+    },
+    {
+      "DATE": "2024-01-12",
+      "TEAM": "MIA",
+      "OPPONENT": "BOS",
+      "HOME/AWAY": "AWAY",
+      "PTS": 95,
+      "OPP_PTS": 110
+    },
+    {
+      "DATE": "2024-01-15",
+      "TEAM": "BOS",
+      "OPPONENT": "MIA",
+      "HOME/AWAY": "HOME",
+      "PTS": 110,
+      "OPP_PTS": 95
+    },
+    {
+      "DATE": "2024-01-18",
+      "TEAM": "LAL",
+      "OPPONENT": "MIA",
+      "HOME/AWAY": "AWAY",
+      "PTS": 98,
+      "OPP_PTS": 102
+    }
+  ]
+}
