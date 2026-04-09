@@ -2,11 +2,12 @@ import { useState } from 'react';
 
 export const useChat = () => {
     const [loading, setLoading] = useState(false);
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const askQuestion = async (question: string) => {
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/api/ask/', {
+            const res = await fetch(`${API_URL}/api/ask/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question })

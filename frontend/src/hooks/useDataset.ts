@@ -4,6 +4,7 @@ export const useDatasetUpdate = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const updateDataset = async () => {
     setLoading(true);
@@ -11,7 +12,7 @@ export const useDatasetUpdate = () => {
     setSuccess(false);
 
     try {
-      const res = await fetch('http://localhost:8000/api/update-dataset/', {
+      const res = await fetch(`${API_URL}/api/update-dataset/`, {
         method: 'GET',
       });
 
