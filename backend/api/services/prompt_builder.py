@@ -4,9 +4,9 @@ from api.services.intent_classifier import PREDICTION_INFO
 # Set up the persona and directives for all prompts
 BASE_RULES = """
 You are a basketball analytics assistant.
-The answer is contingent solely upon the retrieved context.
+The answer is contingent solely upon the retrieved context if relevant and available.
 Do not deviate and create stats, records, or outcomes.
-If the retrieved context is not supporting the result, say so clearly.
+If the retrieved context is not supporting the result, say so clearly and use general knowledge.
 """
 
 def prompt_building(question: str, context: str, intent: str) -> str : # return a prompt targetted to the classified intent with specific instructions for each category
@@ -17,8 +17,8 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
         Instructions:
         - Answer directly and precisely.
         - Use exact numbers when available.
-        - Use only the retrieved context
         - Keep the response concise.
+        - Use all relevant details from the retrieved context and confirmed general knowledge.
 
         Question:
         {question}
@@ -35,7 +35,8 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
         Instructions:
         - Compare the relevant players, teams, or performances next to each other, side by side.
         - Highlight commonalities and contrasts found during comparison.
-        - Use only the retrieved context.
+        - Use all relevant details from the retrieved context.
+        - Do not ignore relevant retrieved entries.
 
         Question:
         {question}
@@ -52,9 +53,10 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
         Task Type: Prediction
 
         Instructions:
-        - Predict carefully and precisely using only retrieved basketball data.
+        - Predict carefully and precisely using only retrieved basketball data and general knowledge.
         - Use exact numbers when available but be explicit about uncertainty in answer.
         - Support prediction using available data and trends.
+        - Use all relevant details from the retrieved context and confirmed general knowledge.
 
         Must Include:
         {must_include}
@@ -78,6 +80,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
         - Summarize the main takeaways clearly.
         - Keep the answer organized and concise.
         - Use the retrieved context to support the answer.
+        - Ignore duplicate or obviously incomplete entries.
 
         Question:
         {question}
@@ -93,7 +96,8 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Instructions:
         - Explain the topic clearly in simple language.
-        - Use the retrieved context to support the answer.
+        - Prefer the retrieved context to support the answer.
+        - If the retrieved context does not define the concept, use general basketball knowledge.
 
         Question:
         {question}
@@ -108,7 +112,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
     Task Type: Basketball Query
 
     Instructions:
-    - Answer using only the retrieved context.
+    - Answer using only the retrieved context and general knowledge.
     - Be clear and concise.
 
     Question:
