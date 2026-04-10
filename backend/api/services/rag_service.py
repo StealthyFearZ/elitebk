@@ -59,6 +59,7 @@ def generate_answer(user_query: str):
     chain = prompt_template | llm | StrOutputParser() # put prompt into LLM (langchain shorthand)
     print("Thinking...")
     response = chain.invoke({"completed_prompt" : prompt}) # Fix: User Story 8 prompt input
+    print("\n")
     print(f"Generated response: {response}")
     
     return {
