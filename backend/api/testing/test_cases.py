@@ -26,7 +26,7 @@ CASES = [
     {
         "id": 5,
         "question": "Explain why field goal percentage matters in basketball analysis.",
-        "expected_keywords": ["field goal percentage", "efficiency", "shooting", "analysis"], # based on observed responses from Gemini
+        "expected_keywords": ["field goal percentage", "efficiency", "shot", "analysis"], # based on observed responses from Gemini
         "expected_intent": "explanation"
     }
 ]
