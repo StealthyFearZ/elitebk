@@ -1,6 +1,9 @@
 import os
 from langchain_postgres.vectorstores import PGVector
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # getter for the embeddings model (model for putting into vector db)
 def get_embeddings():
