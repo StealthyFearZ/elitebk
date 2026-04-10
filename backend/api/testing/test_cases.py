@@ -19,7 +19,7 @@ CASES = [
     },
     {
         "id": 4,
-        "question": "Predict which of two teams is more likely to win their next game.",
+        "question": "Predict which of two teams, Miami or Lakers, is more likely to win their next game.",
         "expected_keywords": ["prediction", "likely", "win", "uncertainty", "predict"], # based on observed responses from Gemini
         "expected_intent": "prediction"
     },
