@@ -25,6 +25,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Retrieved Context:
         {context}
+
         """
 
     if intent and intent == "comparison" : # check if the intent from KEYWORDS is matching
@@ -41,6 +42,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Retrieved Context:
         {context}
+
         """
 
     if intent and intent == "prediction" : # check if the intent from KEYWORDS is matching
@@ -65,6 +67,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Retrieved Context:
         {context}
+
         """
     
     if intent and intent == "summary" : # check if the intent from KEYWORDS is matching
@@ -81,6 +84,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Retrieved Context:
         {context}
+
         """
     
     if intent and intent == "explanation" : # check if the intent from KEYWORDS is matching
@@ -96,6 +100,7 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
         Retrieved Context:
         {context}
+
         """
     
     # default return statement if intent does not match any or does not represent a valid value
@@ -111,5 +116,6 @@ def prompt_building(question: str, context: str, intent: str) -> str : # return 
 
     Retrieved Context:
     {context} 
+
     """
     
