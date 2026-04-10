@@ -1,7 +1,7 @@
 import os
 import requests
 from .vector_store import update_dataset as update_vector_dataset
-from basketball_reference_scraper.seasons import get_schedule
+# from basketball_reference_scraper.seasons import get_schedule
 import pandas as pd
 import json
 
@@ -67,6 +67,9 @@ def fetch_latest_data(season):
     Fetches schedule/results for all NBA teams for a given season.
     Returns a single combined DataFrame with duplicates removed.
     """
+    pass
+
+    """
     all_games = []
 
     for team in NBA_TEAMS:
@@ -86,6 +89,8 @@ def fetch_latest_data(season):
     combined = combined.drop_duplicates(subset=["DATE", "OPPONENT", "PTS", "OPP_PTS"])
 
     return combined
+    """
+
 
 def preprocess_data(data):
     preprocessed_data = []
