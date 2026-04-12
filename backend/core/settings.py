@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -46,7 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'api',
-    'rest_framework'
+    'rest_framework',
+    'rest_framework.authtoken' # Needed for users
 ]
 
 MIDDLEWARE = [
@@ -87,14 +89,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 ENV = os.getenv('ENV', 'dev').lower()
 
 if ENV == 'prod':
+    _db_url = urlparse(os.getenv('SUPABASE_DB_URL', ''))
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', ''),
-            'USER': os.getenv('DB_USER', ''),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'NAME': os.getenv('DB_NAME') or _db_url.path.lstrip('/'),
+            'USER': os.getenv('DB_USER') or _db_url.username,
+            'PASSWORD': os.getenv('DB_PASSWORD') or _db_url.password,
+            'HOST': os.getenv('DB_HOST') or _db_url.hostname,
+            'PORT': os.getenv('DB_PORT') or str(_db_url.port or 5432),
         }
     }
 else:
@@ -153,11 +156,16 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip().rstrip('/') for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',') if origin.strip()
 ]
 
-REST_FRAMEWORK = { 
+# Needed for users vs developers
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.AllowAny",  # for now, remain unchanged
-    ]
+        "rest_framework.permissions.IsAuthenticated",
+    ],
 }
+
 CSRF_TRUSTED_ORIGINS = [
     origin.strip().rstrip('/') for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',') if origin.strip()
 ]
