@@ -1,5 +1,7 @@
-import { Link, Route, Routes } from 'react-router-dom'
-import ChatWindow from './components/ChatWindow'
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import ChatWindow from './components/ChatWindow';
+import LoginPage from './components/LoginPage';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 function HomePage() {
   return (
@@ -8,16 +10,25 @@ function HomePage() {
       <p>Use the chat route to interact with the assistant.</p>
       <Link to="/chat">Go to Chat</Link>
     </main>
-  )
+  );
+}
+
+function ProtectedChat() {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <ChatWindow />;
 }
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/chat" element={<ChatWindow />} />
-    </Routes>
-  )
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/chat" element={<ProtectedChat />} />
+      </Routes>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
