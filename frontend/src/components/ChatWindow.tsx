@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useChat } from '../hooks/useChat';
-import { useDatasetUpdate } from '../hooks/useDataset';
+import useFileUpload from '../hooks/useFileUpload';
+import { useAuth } from '../context/AuthContext';
 
 export default function ChatWindow() {
     const { askQuestion, loading } = useChat();
-    const { updateDataset, loading: datasetLoading, error: datasetError, success: datasetSuccess } = useDatasetUpdate();
+    const { selectedFile, handleFileChange, handleFileUpload, uploadLoading, uploadError, uploadSuccess } = useFileUpload();
+    const { isDeveloper, username, logout } = useAuth();
     const [query, setQuery] = useState("");
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
-    //add sources state variable
-    const [sources, setSources] = useState<{ snippet: string, metadata: any}[]>([]);
+    const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     const handleSend = async () => {
         if (!query.trim()) return;
@@ -20,16 +24,31 @@ export default function ChatWindow() {
         const result = await askQuestion(currentQuery);
         if (result) {
             setMessages(prev => [...prev, { role: 'assistant', content: result.answer }]);
-            // Store the sources
             setSources(result.sources);
         }
     };
+    // Logout function --> clears auth state
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
+    // Logout Button
     return (
         <div className="flex flex-col h-[80vh] w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="bg-blue-600 p-4 text-white text-center font-semibold text-lg">
-                EliteChat
+            <div className="bg-blue-600 p-4 text-white flex items-center justify-between">
+                <span className="font-semibold text-lg">EliteChat</span>
+                <div className="flex items-center gap-3 text-sm">
+                    <span className="opacity-80">{username}</span>
+                    <button
+                        onClick={handleLogout}
+                        className="bg-blue-500 hover:bg-blue-400 px-3 py-1 rounded-md transition-colors"
+                    >
+                        Log out
+                    </button>
+                </div>
             </div>
+
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
                 {messages.length === 0 && (
                     <div className="text-center text-gray-400 mt-10">
@@ -53,49 +72,65 @@ export default function ChatWindow() {
                     </div>
                 )}
             </div>
-
-            <div className="p-4 bg-white border-t border-gray-200">
-                <div className="flex justify-end mb-4">
-                <button
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={updateDataset}
-                    disabled={datasetLoading}
-                >
-                    {datasetLoading ? 'Updating Dataset...' : 'Update Dataset'}
-                </button>
-                </div>
-                {datasetError && <p className="text-red-500 mt-2">{datasetError}</p>}
-                {datasetSuccess && <p className="text-green-500 mt-2">Dataset updated successfully!</p>}
             
-                <div className="p-4 bg-white border-t border-gray-200">
-                    <div className="flex gap-2">
-                        <input 
-                            className="flex-1 border border-gray-300 p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                            value={query} 
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                            placeholder="Type your message..."
-                            disabled={loading}
-                        />
-                        <button 
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={handleSend}
-                            disabled={loading || !query.trim()}
-                        >
-                            Send
-                        </button>
+            
+            <div className="p-4 bg-white border-t border-gray-200">
+                {isDeveloper && (
+                    <div className="flex flex-col gap-2 mb-4">
+                        <div className="flex items-center gap-2">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-gray-300"
+                            >
+                                {selectedFile ? selectedFile.name : 'Choose JSON file'}
+                            </button>
+                            <button
+                                onClick={handleFileUpload}
+                                disabled={!selectedFile || uploadLoading}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {uploadLoading ? 'Uploading...' : 'Upload Dataset'}
+                            </button>
+                        </div>
+                        {uploadError && <p className="text-red-500 text-sm">{uploadError}</p>}
+                        {uploadSuccess && <p className="text-green-500 text-sm">Dataset uploaded and updated successfully!</p>}
                     </div>
+                )}
+
+                <div className="flex gap-2">
+                    <input
+                        className="flex-1 border border-gray-300 p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                        placeholder="Type your message..."
+                        disabled={loading}
+                    />
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-full font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleSend}
+                        disabled={loading || !query.trim()}
+                    >
+                        Send
+                    </button>
                 </div>
 
                 {sources.length > 0 && (
                     <div className="mt-4">
-                    <h3 className="text-lg font-semibold mb-2">Documents Used:</h3>
-                    {sources.map((source, index) => (
-                        <div key={index} className="mb-4">
-                        <p className="text-sm text-gray-600 mb-1">Metadata: {JSON.stringify(source.metadata)}</p>
-                        <p className="text-sm">{source.snippet}</p>
-                        </div>
-                    ))}
+                        <h3 className="text-lg font-semibold mb-2">Documents Used:</h3>
+                        {sources.map((source, index) => (
+                            <div key={index} className="mb-4">
+                                <p className="text-sm text-gray-600 mb-1">Metadata: {JSON.stringify(source.metadata)}</p>
+                                <p className="text-sm">{source.snippet}</p>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
