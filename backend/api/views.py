@@ -60,6 +60,32 @@ class LoginView(APIView):
             "role": role,
         })
 
+# Register View
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    # use to get username / password / role
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        role = request.data.get("role")
+        
+        #error message
+        if not username or not password or not role:
+            return Response({"error": "Username, password, and role are required"}, status=400)
+
+        #incorrect rule
+        if role not in (UserProfile.DEVELOPER, UserProfile.END_USER):
+            return Response({"error": "Invalid role"}, status=400)
+        #Existing username error
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already taken"}, status=400)
+
+        user = User.objects.create_user(username=username, password=password) # make user
+        UserProfile.objects.create(user=user, role=role)
+        token = Token.objects.create(user=user) #give token here
+
+        return Response({"token": token.key, "username": user.username, "role": role}) # return the token
+
 
 class UploadContextView(APIView):
     # Gives the developer the option to upload a JSON as new context --> my user story...
