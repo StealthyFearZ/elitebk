@@ -50,6 +50,81 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-}
 
-  
+  // Add the HTML PART
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 w-full max-w-sm">
+        <h1 className="text-2xl font-bold text-center text-blue-600 mb-6">Create Account</h1> {/*Add Big Lettering*/}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            {/*Username Block*/}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div>
+            {/*Password Block*/}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div>
+            {/*Confirm password blOck*/}
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+            />
+          </div>
+          <div>
+            {/* Choose the role here */}
+            <label className="block text-sm font-medium text-gray-700 mb-2">I am a...</label>
+            <div className="flex gap-3">
+                {/* Dropdown menu */}
+                <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as 'end_user' | 'developer')}
+                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+                    disabled={loading}
+                    >
+                    <option value="end_user">User</option>
+                    <option value="developer">Developer</option>
+                </select>
+            </div>
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {/* Button for submitting the info*/}
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Creating account...' : 'Sign Up'}
+          </button>
+        </form>
+        {/* Add link to login page if they don't need to make a new account */}
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-600 hover:underline">Log in</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
