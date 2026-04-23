@@ -220,7 +220,7 @@ export default function ChatWindow() {
                                 onClick={() => handleGeneratePredictions(idx)}
                                 className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
                             >
-                                Generate Predicted Stat Lines (Excel)
+                                Generate Predicted Stat Lines (Excel) — {detectedTeam}{detectedOpponent ? ` vs ${detectedOpponent}` : ''}
                             </button>
                         )}
                         {predictionStates[idx] && (predictionStates[idx].loading || predictionStates[idx].error || predictionStates[idx].rows) && (
