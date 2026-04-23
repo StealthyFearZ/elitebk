@@ -14,6 +14,102 @@ from .dataset_manager import get_latest_json_file
 
 load_dotenv()
 
+NBA_TEAMS: List[str] = [
+    "Atlanta Hawks",
+    "Boston Celtics",
+    "Brooklyn Nets",
+    "Charlotte Hornets",
+    "Chicago Bulls",
+    "Cleveland Cavaliers",
+    "Dallas Mavericks",
+    "Denver Nuggets",
+    "Detroit Pistons",
+    "Golden State Warriors",
+    "Houston Rockets",
+    "Indiana Pacers",
+    "Los Angeles Clippers",
+    "Los Angeles Lakers",
+    "Memphis Grizzlies",
+    "Miami Heat",
+    "Milwaukee Bucks",
+    "Minnesota Timberwolves",
+    "New Orleans Pelicans",
+    "New York Knicks",
+    "Oklahoma City Thunder",
+    "Orlando Magic",
+    "Philadelphia 76ers",
+    "Phoenix Suns",
+    "Portland Trail Blazers",
+    "Sacramento Kings",
+    "San Antonio Spurs",
+    "Toronto Raptors",
+    "Utah Jazz",
+    "Washington Wizards",
+]
+
+TEAM_ALIASES: Dict[str, str] = {
+    # Common short names
+    "warriors": "Golden State Warriors",
+    "lakers": "Los Angeles Lakers",
+    "clippers": "Los Angeles Clippers",
+    "celtics": "Boston Celtics",
+    "knicks": "New York Knicks",
+    "nets": "Brooklyn Nets",
+    "sixers": "Philadelphia 76ers",
+    "76ers": "Philadelphia 76ers",
+    "thunder": "Oklahoma City Thunder",
+    "suns": "Phoenix Suns",
+    "heat": "Miami Heat",
+    "bucks": "Milwaukee Bucks",
+    "bulls": "Chicago Bulls",
+    "cavs": "Cleveland Cavaliers",
+    "cavaliers": "Cleveland Cavaliers",
+    "mavs": "Dallas Mavericks",
+    "mavericks": "Dallas Mavericks",
+    "spurs": "San Antonio Spurs",
+    "raptors": "Toronto Raptors",
+    "jazz": "Utah Jazz",
+    "kings": "Sacramento Kings",
+    "pelicans": "New Orleans Pelicans",
+    "wolves": "Minnesota Timberwolves",
+    "timberwolves": "Minnesota Timberwolves",
+    "grizzlies": "Memphis Grizzlies",
+    "magic": "Orlando Magic",
+    "pacers": "Indiana Pacers",
+    "pistons": "Detroit Pistons",
+    "rockets": "Houston Rockets",
+    "wizards": "Washington Wizards",
+    "hornets": "Charlotte Hornets",
+    "hawks": "Atlanta Hawks",
+    "nuggets": "Denver Nuggets",
+    # A few common city-only mentions (safe ones)
+    "denver": "Denver Nuggets",
+    "boston": "Boston Celtics",
+    "miami": "Miami Heat",
+    "phoenix": "Phoenix Suns",
+    "dallas": "Dallas Mavericks",
+    "milwaukee": "Milwaukee Bucks",
+    "cleveland": "Cleveland Cavaliers",
+    "chicago": "Chicago Bulls",
+    "brooklyn": "Brooklyn Nets",
+    "orlando": "Orlando Magic",
+    "memphis": "Memphis Grizzlies",
+    "houston": "Houston Rockets",
+    "indiana": "Indiana Pacers",
+    "oklahoma city": "Oklahoma City Thunder",
+    "new york": "New York Knicks",
+    "sacramento": "Sacramento Kings",
+    "san antonio": "San Antonio Spurs",
+    "toronto": "Toronto Raptors",
+    "utah": "Utah Jazz",
+    "washington": "Washington Wizards",
+    "atlanta": "Atlanta Hawks",
+    "detroit": "Detroit Pistons",
+    "portland": "Portland Trail Blazers",
+    "minnesota": "Minnesota Timberwolves",
+    "new orleans": "New Orleans Pelicans",
+}
+
 
 def _get_llm():
     chat_model = os.getenv("GEMINI_CHAT_MODEL", "gemini-3.1-flash-lite-preview")
@@ -67,10 +163,15 @@ def _extract_team_candidates_from_json(data: Any) -> List[str]:
 def get_known_teams() -> List[str]:
     path = get_latest_json_file()
     if not path or not os.path.exists(path):
-        return []
+        return NBA_TEAMS[:]
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return _extract_team_candidates_from_json(data)
+    extracted = _extract_team_candidates_from_json(data)
+
+    # Filter extracted values down to known NBA teams only (prevents arenas/other strings).
+    extracted_set = set(extracted)
+    filtered = [t for t in NBA_TEAMS if t in extracted_set]
+    return filtered if filtered else NBA_TEAMS[:]
 
 
 def detect_teams_in_text(text: str) -> Tuple[Optional[str], Optional[str]]:
@@ -88,9 +189,16 @@ def detect_teams_in_text(text: str) -> Tuple[Optional[str], Optional[str]]:
 
     t = text.lower()
     found: List[str] = []
+
+    # 1) Exact full team-name matches
     for team in teams:
         if team.lower() in t:
             found.append(team)
+
+    # 2) Alias matches (only map to canonical NBA team names)
+    for alias, canonical in TEAM_ALIASES.items():
+        if alias.lower() in t and canonical in teams:
+            found.append(canonical)
 
     # Deduplicate while preserving length ordering
     unique: List[str] = []
