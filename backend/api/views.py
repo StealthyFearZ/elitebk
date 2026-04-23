@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.authtoken.models import Token
 from .services.rag_service import generate_answer
+from .services.report_service import generate_report_content, build_pdf, encode_pdf
 from .services.dataset_manager import update_dataset, update_dataset_from_json
 from django.contrib.auth.models import User
 from .models import UserProfile
@@ -33,6 +34,35 @@ class ChatAnswerView(APIView):
         return Response({
             "answer": result["answer"],
             "sources": result["sources"]
+        })
+
+
+class GenerateReportView(APIView):
+    def post(self, request):
+        # Find question
+        question = request.data.get("question")
+        #get answer
+        answer = request.data.get("answer")
+        #get sources
+        sources = request.data.get("sources", [])
+
+        if not question or not answer:
+            return Response({"error": "question and answer are required"}, status=400)
+
+        try:
+            # Call the generate report function
+            report_data = generate_report_content(question, answer, sources)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=500)
+
+        # Now build the pdf report
+        pdf_bytes = build_pdf(report_data, question)
+        return Response({
+            "preview": {
+                "overview": report_data["overview"],
+                "key_statistics": report_data["key_statistics"],
+            },
+            "pdf_base64": encode_pdf(pdf_bytes),
         })
 
 
