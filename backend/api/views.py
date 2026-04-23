@@ -7,6 +7,12 @@ from rest_framework.permissions import AllowAny, BasePermission
 from rest_framework.authtoken.models import Token
 from .services.rag_service import generate_answer
 from .services.report_service import generate_report_content, build_pdf, encode_pdf
+from .services.prediction_service import (
+    build_xlsx_bytes,
+    detect_teams_in_text,
+    encode_xlsx,
+    generate_predicted_rows,
+)
 from .services.dataset_manager import update_dataset, update_dataset_from_json
 from django.contrib.auth.models import User
 from .models import UserProfile
@@ -31,9 +37,12 @@ class ChatAnswerView(APIView):
         if not query:
             return Response({"error": "Question is required"}, status=400)
         result = generate_answer(query)
+        detected_team, detected_opponent = detect_teams_in_text(query)
         return Response({
             "answer": result["answer"],
-            "sources": result["sources"]
+            "sources": result["sources"],
+            "detected_team": detected_team,
+            "detected_opponent": detected_opponent,
         })
 
 
@@ -63,6 +72,31 @@ class GenerateReportView(APIView):
                 "key_statistics": report_data["key_statistics"],
             },
             "pdf_base64": encode_pdf(pdf_bytes),
+        })
+
+
+class PredictLineupView(APIView):
+    def post(self, request):
+        team = request.data.get("team")
+        opponent = request.data.get("opponent")
+        question = request.data.get("question", "")
+
+        if not team:
+            return Response({"error": "team is required"}, status=400)
+
+        try:
+            prediction = generate_predicted_rows(team=str(team), opponent=str(opponent) if opponent else None, question=str(question))
+            rows = prediction["rows"]
+            xlsx_bytes = build_xlsx_bytes(rows)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+        return Response({
+            "team": team,
+            "opponent": opponent,
+            "notes": prediction.get("notes", ""),
+            "table": rows,
+            "xlsx_base64": encode_xlsx(xlsx_bytes),
         })
 
 

@@ -14,7 +14,16 @@ export default function ChatWindow() {
     const [query, setQuery] = useState("");
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
     const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
+    const [detectedTeam, setDetectedTeam] = useState<string | null>(null);
+    const [detectedOpponent, setDetectedOpponent] = useState<string | null>(null);
     const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
+    const [predictionStates, setPredictionStates] = useState<Record<number, {
+        loading: boolean;
+        error: string | null;
+        rows: Array<Record<string, any>> | null;
+        xlsxBase64: string | null;
+        notes: string | null;
+    }>>({});
     const API_URL = import.meta.env.VITE_API_URL ?? '';
     const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,12 +40,16 @@ export default function ChatWindow() {
         const currentQuery = query;
         setQuery("");
         setSources([]);
+        setDetectedTeam(null);
+        setDetectedOpponent(null);
         setMessages(prev => [...prev, { role: 'user', content: currentQuery }]);
 
         const result = await askQuestion(currentQuery);
         if (result) {
             setMessages(prev => [...prev, { role: 'assistant', content: result.answer }]);
             setSources(result.sources);
+            setDetectedTeam(result.detected_team ?? null);
+            setDetectedOpponent(result.detected_opponent ?? null);
         }
     };
 
@@ -82,6 +95,68 @@ export default function ChatWindow() {
         a.download = `elitebk-report-${msgIndex}.pdf`;
         a.click();
         URL.revokeObjectURL(url); // use URL 
+    };
+
+    const handleGeneratePredictions = async (msgIndex: number) => {
+        const question = messages[msgIndex - 1]?.content ?? '';
+        if (!detectedTeam) return;
+
+        setPredictionStates(prev => ({
+            ...prev,
+            [msgIndex]: { loading: true, error: null, rows: null, xlsxBase64: null, notes: null },
+        }));
+
+        try {
+            const res = await fetch(`${API_URL}/api/predict-lineup/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
+                body: JSON.stringify({ team: detectedTeam, opponent: detectedOpponent, question }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error((err as any).error ?? `Server Error ${res.status}`);
+            }
+
+            const data = await res.json();
+            setPredictionStates(prev => ({
+                ...prev,
+                [msgIndex]: {
+                    loading: false,
+                    error: null,
+                    rows: data.table ?? [],
+                    xlsxBase64: data.xlsx_base64 ?? null,
+                    notes: data.notes ?? null,
+                },
+            }));
+        } catch (err) {
+            setPredictionStates(prev => ({
+                ...prev,
+                [msgIndex]: {
+                    loading: false,
+                    error: err instanceof Error ? err.message : 'Prediction generation failed',
+                    rows: null,
+                    xlsxBase64: null,
+                    notes: null,
+                },
+            }));
+        }
+    };
+
+    const downloadBase64Xlsx = (base64: string, filename: string) => {
+        const binaryStr = atob(base64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+
+        const blob = new Blob([bytes], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
     };
 
     const handleLogout = () => {
@@ -138,6 +213,66 @@ export default function ChatWindow() {
                             <button onClick={() => handleGenerateReport(idx)} className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
                                 Generate Report
                             </button>
+                        )}
+                        {/* Button to generate lineup predictions (Excel) */}
+                        {msg.role === 'assistant' && detectedTeam && !predictionStates[idx]?.rows && !predictionStates[idx]?.loading && (
+                            <button
+                                onClick={() => handleGeneratePredictions(idx)}
+                                className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                            >
+                                Generate Predicted Stat Lines (Excel)
+                            </button>
+                        )}
+                        {predictionStates[idx] && (predictionStates[idx].loading || predictionStates[idx].error || predictionStates[idx].rows) && (
+                            <div className="w-full max-w-[85%] mt-2 rounded-xl bg-white border border-gray-200 shadow-sm px-4 py-3 space-y-3">
+                                {predictionStates[idx].loading && (
+                                    <p className="text-xs text-gray-500">Generating predictions...</p>
+                                )}
+                                {predictionStates[idx].error && (
+                                    <p className="text-xs text-red-500">{predictionStates[idx].error}</p>
+                                )}
+                                {predictionStates[idx].notes && (
+                                    <p className="text-xs text-gray-500">{predictionStates[idx].notes}</p>
+                                )}
+                                {predictionStates[idx].rows && predictionStates[idx].rows.length > 0 && (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-xs">
+                                            <thead>
+                                                <tr className="text-gray-500 border-b">
+                                                    {Object.keys(predictionStates[idx].rows[0]).map((k) => (
+                                                        <th key={k} className="text-left py-2 pr-3 font-semibold whitespace-nowrap">
+                                                            {k}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {predictionStates[idx].rows.map((row, rIdx) => (
+                                                    <tr key={rIdx} className="border-b last:border-b-0">
+                                                        {Object.keys(predictionStates[idx].rows![0]).map((k) => (
+                                                            <td key={k} className="py-2 pr-3 whitespace-nowrap text-gray-700">
+                                                                {String((row as any)[k] ?? '')}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        disabled={!predictionStates[idx].xlsxBase64}
+                                        onClick={() => {
+                                            const fn = `${detectedTeam}${detectedOpponent ? `_vs_${detectedOpponent}` : ''}_predictions.xlsx`;
+                                            downloadBase64Xlsx(predictionStates[idx].xlsxBase64!, fn);
+                                        }}
+                                        className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        Download Excel
+                                    </button>
+                                </div>
+                            </div>
                         )}
                         {reportStates[idx] && (reportStates[idx].loading || reportStates[idx].error || reportStates[idx].preview) && (
                             <div className="w-full max-w-[85%] mt-2">
