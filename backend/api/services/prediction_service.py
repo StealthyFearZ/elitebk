@@ -216,9 +216,9 @@ Given a team (and optionally an opponent), generate a predicted stat line table 
 
 IMPORTANT RULES:
 - Return ONLY valid JSON with exactly this shape:
-{
+{{
   "rows": [
-    {
+    {{
       "player": "Full Name",
       "position": "PG/SG/SF/PF/C (best guess)",
       "min": 0,
@@ -231,10 +231,10 @@ IMPORTANT RULES:
       "fg_pct": 0,
       "tp_pct": 0,
       "ft_pct": 0
-    }
+    }}
   ],
   "notes": "1-2 short sentences describing assumptions."
-}
+}}
 - rows must contain EXACTLY 5 entries.
 - Use numbers (not strings) for numeric fields.
 - Keep percentages as 0-100 numbers (e.g. 47.2).
