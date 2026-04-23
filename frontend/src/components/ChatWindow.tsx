@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { useChat } from '../hooks/useChat';
 import useFileUpload from '../hooks/useFileUpload';
 import { useAuth } from '../context/AuthContext';
+import ReportPanel from './ReportPanel';
+import type { ReportState } from '../types/report';
 
 
 export default function ChatWindow() {
     const { askQuestion, loading } = useChat();
     const { selectedFile, handleFileChange, handleFileUpload, uploadLoading, uploadError, uploadSuccess } = useFileUpload();
-    const { isDeveloper, username, logout } = useAuth();
+    const { isDeveloper, username, logout, token } = useAuth();
     const [query, setQuery] = useState("");
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
     const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
+    const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
+    const API_URL = import.meta.env.VITE_API_URL ?? '';
     const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -34,6 +38,50 @@ export default function ChatWindow() {
             setMessages(prev => [...prev, { role: 'assistant', content: result.answer }]);
             setSources(result.sources);
         }
+    };
+
+    const handleGenerateReport = async (msgIndex: number) => {
+      // pull the question / answer
+        const question = messages[msgIndex - 1]?.content;
+        const answer = messages[msgIndex]?.content;
+        if (!question || !answer) return;
+
+        // call setReportStates before fetching
+        setReportStates(prev => ({ ...prev, [msgIndex]: { loading: true, error: null, preview: null, pdfBlob: null } }));
+
+        try {
+            // use the generate-report view func
+            const res = await fetch(`${API_URL}/api/generate-report/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
+                body: JSON.stringify({ question, answer, sources }),
+            });
+            // error catching
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error((err as any).error ?? `Server Error ${res.status}`);
+            }
+            const data = await res.json();
+            const binaryStr = atob(data.pdf_base64); //pdf in the making,,,
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+            const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+            setReportStates(prev => ({ ...prev, [msgIndex]: { loading: false, error: null, preview: data.preview, pdfBlob } }));
+        } catch (err) {
+            setReportStates(prev => ({ ...prev, [msgIndex]: { loading: false, error: err instanceof Error ? err.message : 'Report generation failed', preview: null, pdfBlob: null } }));
+        }
+    };
+
+    // add func to download the report
+    const handleDownloadReport = (msgIndex: number) => {
+        const blob = reportStates[msgIndex]?.pdfBlob;
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `elitebk-report-${msgIndex}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url); // use URL 
     };
 
     const handleLogout = () => {
@@ -79,11 +127,23 @@ export default function ChatWindow() {
                         </button>
                     </div>
                 )}
+                {/* Add Generate Report Option Here */ }
                 {messages.map((msg, idx) => (
-                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                         <div className={`max-w-[72%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'}`}>
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                         </div>
+                        {/* Button to generate the Report */ }
+                        {msg.role === 'assistant' && !reportStates[idx]?.preview && !reportStates[idx]?.loading && (
+                            <button onClick={() => handleGenerateReport(idx)} className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
+                                Generate Report
+                            </button>
+                        )}
+                        {reportStates[idx] && (reportStates[idx].loading || reportStates[idx].error || reportStates[idx].preview) && (
+                            <div className="w-full max-w-[85%] mt-2">
+                                <ReportPanel reportState={reportStates[idx]} onDownload={() => handleDownloadReport(idx)} /> {/* handle Download report view */}
+                            </div>
+                        )}
                     </div>
                 ))}
                 {/* Display the sources */}
