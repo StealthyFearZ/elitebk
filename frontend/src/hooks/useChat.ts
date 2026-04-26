@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 export const useChat = () => {
     const [loading, setLoading] = useState(false);
     const { token } = useAuth();
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
     const askQuestion = async (question: string) => {
         setLoading(true);

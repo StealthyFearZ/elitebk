@@ -24,7 +24,7 @@ export default function ChatWindow() {
         xlsxBase64: string | null;
         notes: string | null;
     }>>({});
-    const API_URL = import.meta.env.VITE_API_URL ?? '';
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
     const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();

@@ -12,7 +12,7 @@ export default function SignupPage() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
