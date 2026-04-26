@@ -12,8 +12,11 @@ export default function ChatWindow() {
     const { selectedFile, handleFileChange, handleFileUpload, uploadLoading, uploadError, uploadSuccess } = useFileUpload();
     const { isDeveloper, username, logout, token } = useAuth();
     const [query, setQuery] = useState("");
-    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, sources?: { snippet: string, metadata: any }[] }[]>([]);
     const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
+    const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
+    const toggleSource = (idx: number) =>
+        setExpandedSources(prev => ({ ...prev, [idx]: !prev[idx] }));
     const [detectedTeam, setDetectedTeam] = useState<string | null>(null);
     const [detectedOpponent, setDetectedOpponent] = useState<string | null>(null);
     const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
@@ -46,7 +49,7 @@ export default function ChatWindow() {
 
         const result = await askQuestion(currentQuery);
         if (result) {
-            setMessages(prev => [...prev, { role: 'assistant', content: result.answer }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: result.answer, sources: result.sources }]);
             setSources(result.sources);
             setDetectedTeam(result.detected_team ?? null);
             setDetectedOpponent(result.detected_opponent ?? null);
@@ -208,6 +211,26 @@ export default function ChatWindow() {
                         <div className={`max-w-[72%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'}`}>
                             <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                         </div>
+                        {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                {msg.sources.map((source, sIdx) => (
+                                    <div key={sIdx}>
+                                        <button
+                                            onClick={() => toggleSource(idx * 100 + sIdx)}
+                                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-xs text-gray-600 font-medium transition-colors"
+                                        >
+                                            <span>Source {sIdx + 1}</span>
+                                            <span className="text-gray-400">{expandedSources[idx * 100 + sIdx] ? '▲' : '▼'}</span>
+                                        </button>
+                                        {expandedSources[idx * 100 + sIdx] && (
+                                            <div className="mt-1.5 text-xs text-gray-600 border-l-2 border-blue-200 pl-2 leading-relaxed max-w-[400px]">
+                                                {source.snippet}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         {/* Button to generate the Report */ }
                         {msg.role === 'assistant' && !reportStates[idx]?.preview && !reportStates[idx]?.loading && (
                             <button onClick={() => handleGenerateReport(idx)} className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
@@ -281,22 +304,6 @@ export default function ChatWindow() {
                         )}
                     </div>
                 ))}
-                {/* Display the sources */}
-                {sources.length > 0 && !loading && (
-                    <div className="flex justify-start w-full max-w-[85%]">
-                        <div className="w-full rounded-xl bg-white border border-gray-200 shadow-sm px-4 py-3 space-y-2">
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                Sources ({sources.length})
-                            </p>
-                            {/* Display each source used here */}
-                            {sources.map((source, idx) => (
-                                <div key={idx} className="text-xs text-gray-600 border-l-2 border-gray-200 pl-2">
-                                    <p className="leading-relaxed">{source.snippet}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
                 {loading && (
                     <div className="flex justify-start">
                         <div className="max-w-[70%] rounded-2xl p-3 shadow-sm bg-white text-gray-800 rounded-bl-none border border-gray-200 flex space-x-2 items-center">
