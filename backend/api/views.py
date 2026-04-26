@@ -16,6 +16,7 @@ from .services.prediction_service import (
 from .services.dataset_manager import update_dataset, update_dataset_from_json
 from django.contrib.auth.models import User
 from .models import UserProfile
+from .services.telemetry import track_chat_performance
 
 DATASET_FOLDER = os.path.join(os.path.dirname(__file__), "../dataset")
 
@@ -31,6 +32,7 @@ class IsDeveloper(BasePermission):
 
 
 class ChatAnswerView(APIView):
+    @track_chat_performance(endpoint_name="Generate Chatbot Response")
     def post(self, request):
         query = request.data.get("question")
         # ADded error detection for submitting empty question
