@@ -1,5 +1,7 @@
 import os
 from django.http import JsonResponse
+import time
+from .models import ChatMessage
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -38,8 +40,19 @@ class ChatAnswerView(APIView):
         # ADded error detection for submitting empty question
         if not query:
             return Response({"error": "Question is required"}, status=400)
+        start_time = time.time() # stores time before generating answer
         result = generate_answer(query)
+        result_response_time = int((time.time() - start_time)) # uses time before generation to calculate change in time as the response time
         detected_team, detected_opponent = detect_teams_in_text(query)
+
+        ChatMessage.objects.create( # adds another value to the ChatMessage model for each 
+            session_id = request.data.get("session_id", "default_session"), # gets the id of the session it was called in
+            user_query = query,
+            ai_response = result['answer'],
+            intent = result.get('intent'),
+            response_time = result_response_time
+        )
+
         return Response({
             "answer": result["answer"],
             "sources": result["sources"],
