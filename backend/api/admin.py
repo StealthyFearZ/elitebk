@@ -1,5 +1,6 @@
-from django.contrib import admin
-from .models import ChatTelemetry, ChatMessage
+from django.contrib import admin, messages
+from .models import ChatTelemetry, KnowledgeBase, ChatMessage
+from .services.vector_store import clear_vectorstore
 
 @admin.register(ChatTelemetry)
 class ChatTelemetryAdmin(admin.ModelAdmin):
@@ -15,7 +16,7 @@ class ChatTelemetryAdmin(admin.ModelAdmin):
         if obj.latency_ms >= 1000:
             return f"{obj.latency_ms / 1000:.3f} s"
         return f"{obj.latency_ms:.0f} ms"
-    
+
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
     # Same format used from ChatTelemetryAdmin
@@ -29,4 +30,16 @@ class ChatMessageAdmin(admin.ModelAdmin):
     def __str__(self): # String representation
         return f"{self.user_query[:50]} - Created At: {self.created_at} | Response Time: {self.response_time} | Intent: {self.intent} | Session ID: {self.session_id}" # string rep
 
+# add action to clear the chatbot knowledge base
+@admin.register(KnowledgeBase)
+class KnowledgeBaseAdmin(admin.ModelAdmin):
+    actions = ["clear_kb"]
+
+    @admin.action(description="Clear the chatbot knowledge base")
+    def clear_kb(self, request, queryset):
+        try:
+            clear_vectorstore()
+            self.message_user(request, "Knowledge base cleared successfully!", level=messages.SUCCESS)
+        except Exception as e:
+            self.message_user(request, f"Error clearing knowledge base: {e}", level=messages.ERROR)
 

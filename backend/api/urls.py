@@ -8,6 +8,7 @@ from .views import (
     RegisterView,
     UploadContextView,
 )
+from .views_migrate import run_migrations   # admin-only url to trigger database migrations
 
 
 urlpatterns = [
@@ -18,4 +19,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='api.login'), # Used for deciding dev user vs enduser
     path('upload-context/', UploadContextView.as_view(), name='api.upload_context'), # Used for uplod dataset
     path('register/', RegisterView.as_view(), name='api.register'), # used for signup / registere
+    path("run-migrations/", run_migrations), # admin-only, used to run database migrations
 ]

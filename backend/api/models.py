@@ -42,3 +42,10 @@ class ChatTelemetry(models.Model):
         status = "Success" if self.is_success else "Failed"
         return f"[{status}] {self.endpoint} - {self.latency_ms:.2f}ms"
 
+class KnowledgeBase(models.Model):
+    class Meta:
+        verbose_name = "Knowledge Base"
+        verbose_name_plural = "Knowledge Base"
+
+    def __str__(self):
+        return "Knowledge Base"
