@@ -181,7 +181,8 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
-MIGRATION_SECRET = os.getenv("MIGRATION_SECRET")
+# look for MIGRATION_SECRET in env variables, default to None if not found (local dev)
+MIGRATION_SECRET = os.getenv("MIGRATION_SECRET", None)
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
