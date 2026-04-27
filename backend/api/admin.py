@@ -21,9 +21,12 @@ class ChatMessageAdmin(admin.ModelAdmin):
     # Same format used from ChatTelemetryAdmin
     list_display = ('id', 'user_query', 'intent', 'response_time', 'created_at') # how all fields should be displayed
     list_filter = ('intent', 'created_at') # filters for the displaying of each of the objects
-    search_fields = ('query', 'intent', 'ai_response') # what should be searchable from a list of recorded ChatMessage objects
+    search_fields = ('user_query', 'intent', 'ai_response') # what should be searchable from a list of recorded ChatMessage objects
     readonly_fields = ('session_id', 'user_query', 'ai_response', 'intent', 'response_time', 'created_at') # fields that should only have values that can be read, not edited
 
     ordering = ['-created_at'] # order the list of items by descending order of object creation, most recent to oldest
+
+    def __str__(self): # String representation
+        return f"{self.user_query[:50]} - Created At: {self.created_at} | Response Time: {self.response_time} | Intent: {self.intent} | Session ID: {self.session_id}" # string rep
 
 
