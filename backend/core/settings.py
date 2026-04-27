@@ -181,6 +181,8 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+MIGRATION_SECRET = os.getenv("MIGRATION_SECRET")
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
