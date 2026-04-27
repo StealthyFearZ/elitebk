@@ -19,7 +19,7 @@ class ChatTelemetryAdmin(admin.ModelAdmin):
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
     # Same format used from ChatTelemetryAdmin
-    list_display = ('id', 'short_query', 'intent', 'response_time_seconds', 'created_at') # how all fields should be displayed
+    list_display = ('id', 'user_query', 'intent', 'response_time', 'created_at') # how all fields should be displayed
     list_filter = ('intent', 'created_at') # filters for the displaying of each of the objects
     search_fields = ('query', 'intent', 'ai_response') # what should be searchable from a list of recorded ChatMessage objects
     readonly_fields = ('session_id', 'user_query', 'ai_response', 'intent', 'response_time', 'created_at') # fields that should only have values that can be read, not edited
