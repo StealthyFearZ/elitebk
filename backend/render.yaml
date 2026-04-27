@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: elitebk-backend
+    env: python
+    rootDirectory: .
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
+    postdeploy: | 
+      python manage.py migrate
+      python manage.py createsuperuser --noinput || true
