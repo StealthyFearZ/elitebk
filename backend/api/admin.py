@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from .models import ChatTelemetry, KnowledgeBase, ChatMessage
+from .models import ChatTelemetry, KnowledgeBase, UsageLogs
 from .services.vector_store import clear_vectorstore
 
 @admin.register(ChatTelemetry)
@@ -17,8 +17,8 @@ class ChatTelemetryAdmin(admin.ModelAdmin):
             return f"{obj.latency_ms / 1000:.3f} s"
         return f"{obj.latency_ms:.0f} ms"
 
-@admin.register(ChatMessage)
-class ChatMessageAdmin(admin.ModelAdmin):
+@admin.register(UsageLogs)
+class UsageLogsAdmin(admin.ModelAdmin):
     # Same format used from ChatTelemetryAdmin
     list_display = ('id', 'user_query', 'intent', 'response_time', 'created_at') # how all fields should be displayed
     list_filter = ('intent', 'created_at') # filters for the displaying of each of the objects

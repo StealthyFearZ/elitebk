@@ -11,6 +11,13 @@ class ChatMessage(models.Model): # chat storage model via Postgres
     created_at = models.DateTimeField(auto_now_add=True)
     response_time = models.IntegerField(blank=True, null=True) # store the response time in seconds
 
+class UsageLogs(ChatMessage): # class to change ChatMessage model behavior in admin
+    class Meta:
+        proxy = True # allows change in behavior
+        # Change the names to Usage Log for the admin display while maintaining usage in other parts of the code
+        verbose_name = "Usage Log" 
+        verbose_name_plural = "Usage Logs"
+
 
 # model for tracking what's in the db
 class Document(models.Model):
