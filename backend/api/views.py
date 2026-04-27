@@ -1,5 +1,5 @@
 import os
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 import time
 from .models import ChatMessage
 from django.contrib.auth import authenticate
@@ -19,6 +19,7 @@ from .services.dataset_manager import update_dataset, update_dataset_from_json
 from django.contrib.auth.models import User
 from .models import UserProfile
 from .services.telemetry import track_chat_performance
+import json
 
 DATASET_FOLDER = os.path.join(os.path.dirname(__file__), "../dataset")
 
@@ -200,10 +201,44 @@ class UploadContextView(APIView):
 
 
 def update_dataset_view(request):
-    season = 2024
-    # More debugging / error detection statements to help figure out wahts wrong rn...
-    try:
-        update_dataset(season)
-        return JsonResponse({"message": "Dataset updated successfully."})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    source = request.GET.get("source", "json")
+    season = request.GET.get("season", "2024")
+    max_players = int(request.GET.get("max_players", "50"))
+
+    def progress_generator():
+        try:
+            # Send initial message
+            yield f"data: {json.dumps({'message': 'Starting dataset update...', 'status': 'processing'})}\n\n"
+
+            record_count = None
+            progress_messages = []
+
+            # Iterate through the generator to get progress messages
+            dataset_generator = update_dataset(season, source=source, max_players=max_players)
+            for message in dataset_generator:
+                if isinstance(message, str):
+                    progress_messages.append(message)
+                    yield f"data: {json.dumps({'message': message, 'status': 'processing', 'progress': progress_messages})}\n\n"
+                else:
+                    record_count = message
+
+            # Send completion message
+            response_data = {
+                "message": f"Dataset updated successfully from {source} for season {season}.",
+                "status": "completed",
+                "progress": progress_messages
+            }
+            if record_count is not None:
+                response_data["records_ingested"] = record_count
+
+            yield f"data: {json.dumps(response_data)}\n\n"
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e), 'status': 'error'})}\n\n"
+
+    response = StreamingHttpResponse(
+        progress_generator(),
+        content_type='text/event-stream'
+    )
+    response['Cache-Control'] = 'no-cache'
+    return response
