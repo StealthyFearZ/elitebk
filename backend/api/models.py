@@ -7,7 +7,10 @@ class ChatMessage(models.Model): # chat storage model via Postgres
     session_id = models.CharField(max_length=100)
     user_query = models.TextField()
     ai_response = models.TextField()
+    intent = models.CharField(max_length=50, blank=True, null=True) # store intent
     created_at = models.DateTimeField(auto_now_add=True)
+    response_time = models.IntegerField(blank=True, null=True) # store the response time in seconds
+
 
 # model for tracking what's in the db
 class Document(models.Model):
