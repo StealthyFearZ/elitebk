@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '../hooks/useChat';
 import useFileUpload from '../hooks/useFileUpload';
+import { useDatasetUpdate } from '../hooks/useDataset';
 import { useAuth } from '../context/AuthContext';
 import ReportPanel from './ReportPanel';
 import type { ReportState } from '../types/report';
@@ -10,8 +11,11 @@ import type { ReportState } from '../types/report';
 export default function ChatWindow() {
     const { askQuestion, loading } = useChat();
     const { selectedFile, handleFileChange, handleFileUpload, uploadLoading, uploadError, uploadSuccess } = useFileUpload();
+    const { updateDataset, loading: updateLoading, error: datasetUpdateError, success: datasetUpdateSuccess, progress, currentMessage } = useDatasetUpdate();
     const { isDeveloper, username, logout, token } = useAuth();
     const [query, setQuery] = useState("");
+    const [apiSeason, setApiSeason] = useState("2024");
+    const [maxPlayers, setMaxPlayers] = useState(50);
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, sources?: { snippet: string, metadata: any }[] }[]>([]);
     const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
     const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
@@ -160,6 +164,10 @@ export default function ChatWindow() {
         a.download = filename.endsWith('.xlsx') ? filename : `${filename}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
+    };
+
+    const handleUpdateNbaApiDataset = async () => {
+        await updateDataset({ source: 'nba_api', season: apiSeason, maxPlayers: maxPlayers });
     };
 
     const handleLogout = () => {
@@ -343,6 +351,50 @@ export default function ChatWindow() {
                         </div>
                         {uploadError && <p className="text-red-500 text-sm">{uploadError}</p>}
                         {uploadSuccess && <p className="text-green-500 text-sm">Dataset uploaded and updated successfully!</p>}
+                        <div className="flex flex-col gap-2 mt-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <label className="text-xs text-gray-500">NBA API Season</label>
+                                <input
+                                    type="text"
+                                    value={apiSeason}
+                                    onChange={(e) => setApiSeason(e.target.value)}
+                                    className="w-24 border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-800"
+                                    placeholder="2024"
+                                />
+                                <label className="text-xs text-gray-500">Top Players</label>
+                                <input
+                                    type="number"
+                                    value={maxPlayers}
+                                    onChange={(e) => setMaxPlayers(parseInt(e.target.value) || 50)}
+                                    className="w-20 border border-gray-200 rounded px-3 py-2 text-sm bg-white text-gray-800"
+                                    placeholder="50"
+                                    min="10"
+                                    max="200"
+                                />
+                                <button
+                                    onClick={handleUpdateNbaApiDataset}
+                                    disabled={updateLoading}
+                                    className="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    {updateLoading ? 'Updating...' : 'Update Dataset from NBA API'}
+                                </button>
+                            </div>
+                            {datasetUpdateError && <p className="text-red-500 text-sm">{datasetUpdateError}</p>}
+                            {updateLoading && currentMessage && (
+                                <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700">
+                                    <div className="font-medium">{currentMessage}</div>
+                                </div>
+                            )}
+                            {datasetUpdateSuccess && <p className="text-green-500 text-sm">Dataset updated successfully from NBA API! (Note: Rate-limited ingestion may take ~1-2 minutes)</p>}
+                            {progress.length > 0 && (
+                                <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-700 max-h-32 overflow-y-auto">
+                                    <div className="font-medium mb-1">Processing Progress:</div>
+                                    {progress.map((msg, idx) => (
+                                        <div key={idx} className="text-xs">{msg}</div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
