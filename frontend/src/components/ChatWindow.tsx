@@ -21,9 +21,7 @@ export default function ChatWindow() {
     const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
     const toggleSource = (idx: number) =>
         setExpandedSources(prev => ({ ...prev, [idx]: !prev[idx] }));
-    const [detectedTeam, setDetectedTeam] = useState<string | null>(null);
-    const [detectedOpponent, setDetectedOpponent] = useState<string | null>(null);
-    const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
+const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
     const [predictionStates, setPredictionStates] = useState<Record<number, {
         loading: boolean;
         error: string | null;
@@ -47,8 +45,6 @@ export default function ChatWindow() {
         const currentQuery = query;
         setQuery("");
         setSources([]);
-        setDetectedTeam(null);
-        setDetectedOpponent(null);
         setMessages(prev => [...prev, { role: 'user', content: currentQuery }]);
 
         const result = await askQuestion(currentQuery);
@@ -61,8 +57,6 @@ export default function ChatWindow() {
                 detectedOpponent: result.detected_opponent ?? null,
             }]);
             setSources(result.sources);
-            setDetectedTeam(result.detected_team ?? null);
-            setDetectedOpponent(result.detected_opponent ?? null);
         }
     };
 
