@@ -41,8 +41,6 @@ def clear_vectorstore():
     vectorstore.delete_collection()
 
 def update_dataset(documents, batch_size: int = 20):
-    # Automatically clear the supabase --> no more random data thingys (Celtics vs. Boston)
-    clear_vectorstore()
     vectorstore = get_vectorstore()
 
     texts = [doc['content'] for doc in documents]
