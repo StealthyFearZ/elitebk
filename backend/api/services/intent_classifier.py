@@ -16,8 +16,9 @@ PREDICTION = { # list of terms to classify for stat lookup
     "predict", "prediction", "likely winner", "who will win", "forecast", "projected", "guess",
     "expected"
     }
-BRIEF_SUMMARY = { # list of terms to classify for brief summaries 
-    "summarize", "summary", "overview", "recap"
+BRIEF_SUMMARY = { # list of terms to classify for brief summaries
+    "summarize", "summary", "overview", "recap",
+    "top", "best", "most", "list", "ranking", "rankings", "leaders", "leaderboard"
     }
 EXPLANATION = {
     "explain", "explanation", "why", "what does", "meaning of"
@@ -44,7 +45,7 @@ KEYWORDS = { # for loop use and easier access
 
 INTENT_CONFIG = { # configure sampling parameter for the number of document chunks pulled from vector database and response styles for different answers
     "stats_lookup": {
-        "retrieval_k": 4, # precise responses require fewer document chunks to avoid randomness
+        "retrieval_k": 10, # precise responses require fewer document chunks to avoid randomness
         "response_style": "precise",
     },
     "comparison": {
@@ -57,7 +58,7 @@ INTENT_CONFIG = { # configure sampling parameter for the number of document chun
         "extra": PREDICTION_INFO, # helps set specific instructions for a prediction-style question, makes generated prompt behave differently
     },
     "summary": {
-        "retrieval_k": 8, # more than usual as summary requires more information to be processed so more document chunks are required
+        "retrieval_k": 20, # more than usual as summary requires more information to be processed so more document chunks are required
         "response_style": "condensed",
     },
     "explanation": {
