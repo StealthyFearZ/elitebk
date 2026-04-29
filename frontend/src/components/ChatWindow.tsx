@@ -16,14 +16,12 @@ export default function ChatWindow() {
     const [query, setQuery] = useState("");
     const [apiSeason, setApiSeason] = useState("2024");
     const [maxPlayers, setMaxPlayers] = useState(50);
-    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, sources?: { snippet: string, metadata: any }[] }[]>([]);
+    const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, sources?: { snippet: string, metadata: any }[], detectedTeam?: string | null, detectedOpponent?: string | null }[]>([]);
     const [sources, setSources] = useState<{ snippet: string, metadata: any }[]>([]);
     const [expandedSources, setExpandedSources] = useState<Record<number, boolean>>({});
     const toggleSource = (idx: number) =>
         setExpandedSources(prev => ({ ...prev, [idx]: !prev[idx] }));
-    const [detectedTeam, setDetectedTeam] = useState<string | null>(null);
-    const [detectedOpponent, setDetectedOpponent] = useState<string | null>(null);
-    const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
+const [reportStates, setReportStates] = useState<Record<number, ReportState>>({});
     const [predictionStates, setPredictionStates] = useState<Record<number, {
         loading: boolean;
         error: string | null;
@@ -47,16 +45,18 @@ export default function ChatWindow() {
         const currentQuery = query;
         setQuery("");
         setSources([]);
-        setDetectedTeam(null);
-        setDetectedOpponent(null);
         setMessages(prev => [...prev, { role: 'user', content: currentQuery }]);
 
         const result = await askQuestion(currentQuery);
         if (result) {
-            setMessages(prev => [...prev, { role: 'assistant', content: result.answer, sources: result.sources }]);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: result.answer,
+                sources: result.sources,
+                detectedTeam: result.detected_team ?? null,
+                detectedOpponent: result.detected_opponent ?? null,
+            }]);
             setSources(result.sources);
-            setDetectedTeam(result.detected_team ?? null);
-            setDetectedOpponent(result.detected_opponent ?? null);
         }
     };
 
@@ -106,7 +106,9 @@ export default function ChatWindow() {
 
     const handleGeneratePredictions = async (msgIndex: number) => {
         const question = messages[msgIndex - 1]?.content ?? '';
-        if (!detectedTeam) return;
+        const msgDetectedTeam = messages[msgIndex]?.detectedTeam;
+        const msgDetectedOpponent = messages[msgIndex]?.detectedOpponent ?? null;
+        if (!msgDetectedTeam) return;
 
         setPredictionStates(prev => ({
             ...prev,
@@ -117,7 +119,7 @@ export default function ChatWindow() {
             const res = await fetch(`${API_URL}/api/predict-lineup/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Token ${token}` },
-                body: JSON.stringify({ team: detectedTeam, opponent: detectedOpponent, question }),
+                body: JSON.stringify({ team: msgDetectedTeam, opponent: msgDetectedOpponent, question }),
             });
 
             if (!res.ok) {
@@ -256,12 +258,12 @@ export default function ChatWindow() {
                             </button>
                         )}
                         {/* Button to generate lineup predictions (Excel) */}
-                        {msg.role === 'assistant' && detectedTeam && !predictionStates[idx]?.rows && !predictionStates[idx]?.loading && (
+                        {msg.role === 'assistant' && msg.detectedTeam && !predictionStates[idx]?.rows && !predictionStates[idx]?.loading && (
                             <button
                                 onClick={() => handleGeneratePredictions(idx)}
                                 className="mt-1 ml-1 text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
                             >
-                                Generate Predicted Stat Lines (Excel) — {detectedTeam}{detectedOpponent ? ` vs ${detectedOpponent}` : ''}
+                                Generate Predicted Stat Lines (Excel) — {msg.detectedTeam}{msg.detectedOpponent ? ` vs ${msg.detectedOpponent}` : ''}
                             </button>
                         )}
                         {predictionStates[idx] && (predictionStates[idx].loading || predictionStates[idx].error || predictionStates[idx].rows) && (
@@ -305,7 +307,7 @@ export default function ChatWindow() {
                                     <button
                                         disabled={!predictionStates[idx].xlsxBase64}
                                         onClick={() => {
-                                            const fn = `${detectedTeam}${detectedOpponent ? `_vs_${detectedOpponent}` : ''}_predictions.xlsx`;
+                                            const fn = `${messages[idx]?.detectedTeam}${messages[idx]?.detectedOpponent ? `_vs_${messages[idx]?.detectedOpponent}` : ''}_predictions.xlsx`;
                                             downloadBase64Xlsx(predictionStates[idx].xlsxBase64!, fn);
                                         }}
                                         className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed"

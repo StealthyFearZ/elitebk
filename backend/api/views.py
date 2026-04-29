@@ -194,7 +194,7 @@ class UploadContextView(APIView):
                 f.write(chunk)
 
         try:
-            update_dataset_from_json()
+            list(update_dataset_from_json())
             return Response({"message": "Dataset uploaded and updated successfully."})
         except Exception as e:
             return Response({"error": str(e)}, status=500)
