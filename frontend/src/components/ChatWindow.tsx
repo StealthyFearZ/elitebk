@@ -185,6 +185,16 @@ export default function ChatWindow() {
                 </div>
                 <div className="flex items-center gap-3 text-sm">
                     <span className="text-gray-400 text-xs">{username}</span>
+                    {/*Added button to link to Admin */}
+                    <a
+                        href="https://elitebk.onrender.com/admin/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1 rounded text-xs transition-colors"
+                    >
+                        Admin
+                    </a>
+
                     <button
                         onClick={handleLogout}
                         className="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1 rounded text-xs transition-colors"
